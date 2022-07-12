@@ -4,8 +4,6 @@
 
 chip name : ESP32-C3.
 
-extern oscillator : 8MHz.
-
 iic pin: SCL/SDA GPIO2/GPIO3.
 
 gpio pin: INT GPIO7.
