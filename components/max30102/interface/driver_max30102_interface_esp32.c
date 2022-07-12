@@ -31,7 +31,7 @@
  * <table>
  * <tr><th>Date        <th>Version  <th>Author      <th>Description
  * <tr><td>2021/11/13  <td>1.0      <td>Shifeng Li  <td>first upload
- * <tr><td>2022/6/26  <td>1.1      <td>Yuchao Geng <td>Add ESP32 support
+ * <tr><td>2022/6/26   <td>1.1      <td>Yuchao Geng <td>Add ESP32-C3 support
  * </table>
  */
 
@@ -63,8 +63,8 @@ uint8_t max30102_interface_iic_init(void)
 {
     esp_err_t err = ESP_OK;
     uint8_t i2c_num = 0;
-    uint8_t scl = 8;
-    uint8_t sda = 9;
+    uint8_t scl = 2;
+    uint8_t sda = 3;
     uint32_t clk_speed = 400000;
 
     if(i2c_num > 1) {
@@ -77,6 +77,15 @@ uint8_t max30102_interface_iic_init(void)
         err = ESP_ERR_NO_MEM;
         goto error;
     }
+
+    //zero-initialize the config structure.
+    gpio_config_t io_conf = {};
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    io_conf.mode = GPIO_MODE_OUTPUT;
+    io_conf.pin_bit_mask = ((1 << scl ) | ( 1 << sda ));
+    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+    gpio_config(&io_conf);
 
     memset(i2c,0,sizeof(i2c_t));
     i2c->num = i2c_num;
@@ -197,7 +206,7 @@ uint8_t max30102_interface_iic_read(uint8_t addr, uint8_t reg, uint8_t *buf, uin
     }
 
     i2c_master_stop(handle);
-    err = i2c_master_cmd_begin(0, handle, ticks_to_wait);
+    err = i2c_master_cmd_begin(i2c->num, handle, ticks_to_wait);
     if (err != ESP_OK) {
         printf("begin fail,err:0x%x\n",err);
         goto end;
@@ -250,7 +259,7 @@ uint8_t max30102_interface_iic_write(uint8_t addr, uint8_t reg, uint8_t *buf, ui
     }
 
     i2c_master_stop(handle);
-    err = i2c_master_cmd_begin(0, handle, ticks_to_wait);
+    err = i2c_master_cmd_begin(i2c->num, handle, ticks_to_wait);
 
 end:
     i2c_cmd_link_delete_static(handle);
