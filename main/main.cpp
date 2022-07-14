@@ -28,14 +28,39 @@ extern "C" {
 #endif
 
 
-typedef uint8_t (*max30102_func_cb_t)(int argc, char **argv);
+void vTaskAlarmHandler(void *param)
+{
+    int run_seconds = 0;
+    while (1)
+    {
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        run_seconds++;
+        // 定时每十分钟提醒一次，进行PPG信号采样
+        if (run_seconds % 600 == 0)
+        {
+            printf("Alarm! %d seconds\n", run_seconds);
+        }
+    }
+    
+}
 
-extern max30102_func_cb_t p_func_max30102_func;
+
+
+// 蓝牙应用
+// 初始化蓝牙，并新建一个广播，对打包好的 PPG 信号进行广播
+
+
+
 
 extern "C" void app_main(void)
 {
     printf("Hello world!\n");
 
+    // 创建一个定时器，每十分钟提醒一次，进行PPG信号采样
+    xTaskCreate(vTaskAlarmHandler, "vTaskAlarmHandler", 2048, NULL, 5, NULL);
+
+    void ble_app_main(void);
+    ble_app_main();
     void console_main(void);
     console_main();
     
